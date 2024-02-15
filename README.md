@@ -1,5 +1,10 @@
 # Instructions to run the project (tf-gcp-infra)
 
+## API's enabled:
+
+Compute Engine API
+Cloud OS Login API
+
 ## setting up gcloud on your local machine
 
 ```
