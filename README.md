@@ -26,6 +26,7 @@ terraform appy --var-file=<your-var-file-name>
 
 ### Example var file
 
+```
 region = "us-east1"
 project_id = <your_project_id>
 
@@ -54,5 +55,6 @@ next_hop_gateway = "default-internet-gateway"
 ]
 }
 ]
+```
 
 #### Author: Varun Jayakumar
