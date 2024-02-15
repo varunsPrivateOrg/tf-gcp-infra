@@ -1,51 +1,27 @@
-variable "project_id"{
-    type = string
-    description = "Project ID"
-    default = "cloudspring2024-demo"
-}
-
 variable "region" {
-    type = string 
-    description = "Region"
-    default = "us-east1"
+  type        = string
+  default = "us-east1"
 }
-
-variable "vpc_name" {
-  type = string
-  description = "name of my vpc"
-  default ="cloud-vpc"
+ 
+variable "project_id" {
+  type        = string
+  default = "cloudspring2024-demo"
 }
-
-variable "routing_mode"{
-    type=string
-    default="REGIONAL"
-}
-
-variable "delete_default_routes_on_create"{
-    type=bool
-    default=true
-}
-
-variable "auto_create_subnetworks"{
-    type=bool
-    default=false
-}
-
-variable "subnet_1_name"{
-    type=string
-    default = "webapp"
-}
-variable "subnet_1_cider_range" {
-    type=string
-    default="10.10.10.0/24"
-}
-
-variable "subnet_2_cider_range" {
-    type=string
-    default="10.10.20.0/24"
-}
-variable "subnet_2_name" {
-    type=string 
-    default="db"
-  
+ 
+variable "vpcs" {
+  type = list(object({
+    vpc_name = string
+    vpc_auto_create_subnetworks = bool
+    vpc_routing_mode = string
+    vpc_delete_default_routes_on_create = bool
+    subnets = list(object({
+      name          = string
+      ip_cidr_range = string
+    }))
+    routes = list(object({
+      name             = string
+      dest_range       = string
+      next_hop_gateway = string
+    }))
+  }))
 }
