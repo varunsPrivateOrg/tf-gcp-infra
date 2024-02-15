@@ -21,6 +21,16 @@ variable "routing_mode"{
     default="REGIONAL"
 }
 
+variable "delete_default_routes_on_create"{
+    type=bool
+    default=true
+}
+
+variable "auto_create_subnetworks"{
+    type=bool
+    default=false
+}
+
 variable "subnet_1_name"{
     type=string
     default = "webapp"
