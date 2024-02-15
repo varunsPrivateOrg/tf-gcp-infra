@@ -1,23 +1,12 @@
-# create a VPC
-resource "google_compute_network" "vpc" {
-    name = var.vpc_name
-    delete_default_routes_on_create = var.delete_default_routes_on_create
-    auto_create_subnetworks = var.auto_create_subnetworks
-    routing_mode = var.routing_mode
-}
+module "vpcs" {
+  source                              = "./modules/"
+  for_each                            = { for vpc in toset(var.vpcs) : vpc.vpc_name => vpc }
+  routes                              = each.value.routes
+  vpc_delete_default_routes_on_create = each.value.vpc_delete_default_routes_on_create
+  vpc_auto_create_subnetworks         = each.value.vpc_auto_create_subnetworks
+  name                                = each.value.vpc_name
+  vpc_routing_mode                    = each.value.vpc_routing_mode
+  subnets                             = each.value.subnets
 
-# create a Subnet 1
-resource "google_compute_subnetwork" "subnet_1" {
-name=var.subnet_1_name
-ip_cidr_range= var.subnet_1_cider_range
-region=var.region
-network=google_compute_network.vpc.id
 }
-
-# create a Subnet 2
-resource "google_compute_subnetwork" "subnet_2" {
-name=var.subnet_2_name
-ip_cidr_range= var.subnet_2_cider_range
-region=var.region
-network=google_compute_network.vpc.id
-}
+ 
