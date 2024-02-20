@@ -10,8 +10,8 @@ resource "google_compute_network" "vpc_network" {
 }
  
 # iterate through the subnet list and create each subnet
-resource "google_compute_subnetwork" "subnets" {
-  for_each = { for subnet in toset(var.subnets) : subnet.name => subnet }
+resource "google_compute_subnetwork" "subntes" {
+  for_ach = { for subnet in toset(var.subnets) : subnet.name => subnet }
   name          = each.value.name
   ip_cidr_range = each.value.ip_cidr_range
   network       = google_compute_network.vpc_network.name
