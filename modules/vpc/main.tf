@@ -25,3 +25,31 @@ resource "google_compute_route" "routes" {
   next_hop_gateway = each.value.next_hop_gateway
   network          = google_compute_network.vpc_network.name
 }
+
+# resource "google_compute_firewall" "firewall" {
+#   name    = "default-firewall"
+#   network = google_compute_network.vpc_network.name
+#   source_ranges = ["10.0.1.0/24"]
+#   allow {
+#     protocol = "tcp"
+#     ports    = ["3000"]
+#   }
+#   direction = "INGRESS"
+#   source_tags = ["web-subnet"]
+# }
+resource "google_compute_firewall" "firewall" {
+  for_each = { for firewall in toset(var.firewall) : firewall.name => firewall }
+  name    = each.value.name
+  network = google_compute_network.vpc_network.name
+  source_ranges = each.value.source_ranges
+  direction = each.value.direction
+  source_tags = each.value.source_tags
+  dynamic "allow" {
+    for_each = each.value.allow
+    content {
+      protocol = allow.value.protocol
+      ports = allow.value.ports
+    }
+  }
+}
+
