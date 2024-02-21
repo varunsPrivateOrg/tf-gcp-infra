@@ -1,5 +1,5 @@
 module "vpcs" {
-  source                              = "./modules/"
+  source                              = "./modules/vpc"
   for_each                            = { for vpc in toset(var.vpcs) : vpc.vpc_name => vpc }
   routes                              = each.value.routes
   vpc_delete_default_routes_on_create = each.value.vpc_delete_default_routes_on_create
@@ -7,6 +7,17 @@ module "vpcs" {
   name                                = each.value.vpc_name
   vpc_routing_mode                    = each.value.vpc_routing_mode
   subnets                             = each.value.subnets
-
+  firewall                            = each.value.firewall
 }
- 
+
+module "compute_engines" {
+  source            = "./modules/compute"
+  for_each          = { for compute in toset(var.compute_engines) : compute.name => compute }
+  machine_type      = each.value.machine_type
+  instance_name     = each.value.name
+  boot_disk         = each.value.boot_disk
+  network_interface = each.value.network_interface
+  zone              = each.value.zone
+  image             = each.value.image
+  depends_on        = [module.vpcs]
+}

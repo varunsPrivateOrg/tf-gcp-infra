@@ -1,18 +1,43 @@
 variable "region" {
-  type        = string
+  type    = string
   default = "us-east1"
 }
- 
+
 variable "project_id" {
-  type        = string
+  type    = string
   default = "cloudspring2024-demo"
 }
- 
+
+variable "compute_engines" {
+  type = list(object({ machine_type = string
+    name = string
+    zone = string
+    boot_disk = object({
+      initialize_params = object({
+        image = string
+        size  = number
+        type  = string
+      })
+    })
+    network_interface = object({
+      subnetwork_project = string
+      subnetwork         = string
+      access_config = object({
+        network_tier = string
+      })
+    })
+    image = object({
+      family     = string
+      project_id = string
+    })
+  }))
+}
+
 variable "vpcs" {
   type = list(object({
-    vpc_name = string
-    vpc_auto_create_subnetworks = bool
-    vpc_routing_mode = string
+    vpc_name                            = string
+    vpc_auto_create_subnetworks         = bool
+    vpc_routing_mode                    = string
     vpc_delete_default_routes_on_create = bool
     subnets = list(object({
       name          = string
@@ -22,6 +47,16 @@ variable "vpcs" {
       name             = string
       dest_range       = string
       next_hop_gateway = string
+    }))
+    firewall = list(object({
+      name          = string
+      source_ranges = list(string)
+      direction     = string
+      source_tags   = list(string)
+      allow = list(object({
+        protocol = string
+        ports    = list(string)
+      }))
     }))
   }))
 }
