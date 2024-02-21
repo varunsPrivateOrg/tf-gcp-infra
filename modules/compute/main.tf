@@ -18,6 +18,7 @@ resource "google_compute_instance" "instance-1" {
       network_tier = var.network_interface.access_config.network_tier
     }
   }
+  tags = var.tags
 }
 
 data "google_compute_image" "my_image_datasource" {
