@@ -33,3 +33,17 @@ variable "vpc_delete_default_routes_on_create" {
   type        = bool
   description = "should the defaults routes be deleted"
 } 
+
+variable "firewall" {
+  description = "firewall for vpc"
+  type = list(object({
+    name = string
+    source_ranges = list(string)
+    allow = list(object({
+      protocol = string
+      ports = list(string)
+    }))
+    direction = string
+    source_tags = list(string)
+  }))
+}
