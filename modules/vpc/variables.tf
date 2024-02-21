@@ -6,12 +6,12 @@ variable "subnets" {
   }))
   default = []
 }
- 
+
 variable "routes" {
   description = "list of routes to be created"
   type = list(object({
-    name            = string
-    dest_range      = string
+    name             = string
+    dest_range       = string
     next_hop_gateway = string
   }))
 }
@@ -20,30 +20,34 @@ variable "vpc_auto_create_subnetworks" {
   type        = bool
   description = "should the subnets be auto created"
 }
- 
+
 variable "name" {
-  type        = string
+  type = string
 }
 
 variable "vpc_routing_mode" {
-  type        = string
+  type = string
 }
- 
+
 variable "vpc_delete_default_routes_on_create" {
   type        = bool
   description = "should the defaults routes be deleted"
-} 
+}
 
 variable "firewall" {
   description = "firewall for vpc"
   type = list(object({
-    name = string
+    name          = string
     source_ranges = list(string)
     allow = list(object({
       protocol = string
-      ports = list(string)
+      ports    = list(string)
     }))
-    direction = string
-    source_tags = list(string)
+    deny = list(object({
+      protocol = string
+    }))
+    direction   = string
+    target_tags = list(string)
+    priority    = number
   }))
 }

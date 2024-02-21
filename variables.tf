@@ -30,6 +30,7 @@ variable "compute_engines" {
       family     = string
       project_id = string
     })
+    tags = list(string)
   }))
 }
 
@@ -52,11 +53,15 @@ variable "vpcs" {
       name          = string
       source_ranges = list(string)
       direction     = string
-      source_tags   = list(string)
       allow = list(object({
         protocol = string
         ports    = list(string)
       }))
+      deny = list(object({
+        protocol = string
+      }))
+      target_tags = list(string)
+      priority    = string
     }))
   }))
 }

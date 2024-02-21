@@ -40,3 +40,7 @@ variable "image" {
     project_id = string
   })
 }
+
+variable "tags" {
+  type = list(string)
+}

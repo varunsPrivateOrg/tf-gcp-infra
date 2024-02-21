@@ -19,5 +19,6 @@ module "compute_engines" {
   network_interface = each.value.network_interface
   zone              = each.value.zone
   image             = each.value.image
+  tags              = each.value.tags
   depends_on        = [module.vpcs]
 }
