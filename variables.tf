@@ -63,5 +63,38 @@ variable "vpcs" {
       target_tags = list(string)
       priority    = string
     }))
+    database_instances = list(object({
+      database_instance_config = object({
+        name_prefix      = string
+        database_version = string
+        settings = object({
+          tier                        = string
+          deletion_protection_enabled = bool
+          availability_type           = string
+          disk_type                   = string
+          disk_size                   = number
+          edition                     = string
+          ip_configuration = object({
+            ipv4_enabled = bool
+          })
+        })
+        deletion_protection = bool
+      })
+      database_config = object({
+        name            = string
+        deletion_policy = string
+      })
+      users_config = object({
+        name = string
+      })
+      database_config = object({
+        name            = string
+        deletion_policy = string
+      })
+      users_config = object({
+        name = string
+      })
+    }))
+
   }))
 }
