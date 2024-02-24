@@ -60,3 +60,61 @@ resource "google_compute_firewall" "firewall" {
   target_tags = each.value.target_tags
 }
 
+
+resource "google_compute_global_address" "peering_address_range" {
+  name          = "global-psconnect-ip"
+  address_type  = "INTERNAL"
+  purpose       = "VPC_PEERING"
+  network       = google_compute_network.vpc_network.id
+  prefix_length = 24
+}
+resource "google_service_networking_connection" "default" {
+  network                 = google_compute_network.vpc_network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.peering_address_range.name]
+}
+
+resource "random_id" "db_name_suffix" {
+  byte_length = 4
+}
+
+resource "google_sql_database_instance" "default" {
+  name             = "db-${random_id.db_name_suffix.hex}"
+  database_version = "POSTGRES_15"
+  region           = "us-east1"
+
+  settings {
+    tier                        = "db-f1-micro"
+    deletion_protection_enabled = false
+    availability_type           = "REGIONAL"
+    disk_type                   = "PD_SSD"
+    disk_size                   = 100
+    edition                     = "ENTERPRISE"
+    ip_configuration {
+      ipv4_enabled    = false
+      private_network = google_compute_network.vpc_network.id
+    }
+  }
+  deletion_protection = false
+  depends_on          = [google_service_networking_connection.default]
+
+}
+
+resource "google_sql_database" "database_deletion_policy" {
+  name            = "webapp"
+  instance        = google_sql_database_instance.default.name
+  deletion_policy = "DELETE"
+}
+
+resource "random_password" "db_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}<>:?"
+
+}
+
+resource "google_sql_user" "users" {
+  name     = "webapp"
+  instance = google_sql_database_instance.default.name
+  password = random_password.db_password.result
+}
