@@ -8,6 +8,7 @@ module "vpcs" {
   vpc_routing_mode                    = each.value.vpc_routing_mode
   subnets                             = each.value.subnets
   firewall                            = each.value.firewall
+  database_instances                  = each.value.database_instances
 }
 
 module "compute_engines" {
