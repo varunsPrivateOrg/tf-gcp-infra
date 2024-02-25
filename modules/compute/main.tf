@@ -18,7 +18,21 @@ resource "google_compute_instance" "instance-1" {
       network_tier = var.network_interface.access_config.network_tier
     }
   }
-  tags = var.tags
+  tags                    = var.tags
+  metadata_startup_script = <<EOF
+#!/bin/bash
+rm -f /opt/webapp/.env
+{
+  echo "DB_USERNAME=${var.vpcs_with_db_instance[var.sql_db_environment_configs.vpc_network_name].db_instances_configs[var.sql_db_environment_configs.database_instance_prefix].db_username}"
+  echo "DB_NAME=${var.vpcs_with_db_instance[var.sql_db_environment_configs.vpc_network_name].db_instances_configs[var.sql_db_environment_configs.database_instance_prefix].db_name}"
+  echo "DB_PASSWORD=${var.vpcs_with_db_instance[var.sql_db_environment_configs.vpc_network_name].db_instances_configs[var.sql_db_environment_configs.database_instance_prefix].db_password}"
+  echo "DB_PORT=5432"
+  echo "PORT=3000"
+  echo "DB_HOST=${var.vpcs_with_db_instance[var.sql_db_environment_configs.vpc_network_name].db_instances_configs[var.sql_db_environment_configs.database_instance_prefix].db_host}"
+} > /opt/webapp/.env
+
+echo ".env file has been updated."
+EOF
 }
 
 data "google_compute_image" "my_image_datasource" {

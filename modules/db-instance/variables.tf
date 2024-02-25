@@ -30,7 +30,6 @@ variable "users_config" {
     name = string
   })
 }
-
 variable "vpc_reference" {
   type = string
 }

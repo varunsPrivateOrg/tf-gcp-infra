@@ -22,7 +22,7 @@ resource "google_sql_database_instance" "default" {
   deletion_protection = var.database_instance_config.deletion_protection
 }
 
-resource "google_sql_database" "database_deletion_policy" {
+resource "google_sql_database" "database" {
   name            = var.database_config.name
   instance        = google_sql_database_instance.default.name
   deletion_policy = var.database_config.deletion_policy
@@ -35,8 +35,9 @@ resource "random_password" "db_password" {
 
 }
 
-resource "google_sql_user" "users" {
+resource "google_sql_user" "user" {
   name     = var.users_config.name
   instance = google_sql_database_instance.default.name
   password = random_password.db_password.result
+
 }
