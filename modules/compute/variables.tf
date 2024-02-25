@@ -16,9 +16,8 @@ variable "zone" {
 variable "boot_disk" {
   type = object({
     initialize_params = object({
-      image = string
-      size  = number
-      type  = string
+      size = number
+      type = string
     })
   })
 }
@@ -43,4 +42,16 @@ variable "image" {
 
 variable "tags" {
   type = list(string)
+}
+
+variable "sql_db_environment_configs" {
+  type = object({
+    vpc_network_name         = string
+    database_instance_prefix = string
+  })
+}
+
+
+variable "vpcs_with_db_instance" {
+  type = any
 }

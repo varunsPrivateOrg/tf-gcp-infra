@@ -14,9 +14,8 @@ variable "compute_engines" {
     zone = string
     boot_disk = object({
       initialize_params = object({
-        image = string
-        size  = number
-        type  = string
+        size = number
+        type = string
       })
     })
     network_interface = object({
@@ -31,6 +30,10 @@ variable "compute_engines" {
       project_id = string
     })
     tags = list(string)
+    sql_db_environment_configs = object({
+      vpc_network_name         = string
+      database_instance_prefix = string
+    })
   }))
 }
 

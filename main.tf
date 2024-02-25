@@ -12,14 +12,22 @@ module "vpcs" {
 }
 
 module "compute_engines" {
-  source            = "./modules/compute"
-  for_each          = { for compute in toset(var.compute_engines) : compute.name => compute }
-  machine_type      = each.value.machine_type
-  instance_name     = each.value.name
-  boot_disk         = each.value.boot_disk
-  network_interface = each.value.network_interface
-  zone              = each.value.zone
-  image             = each.value.image
-  tags              = each.value.tags
-  depends_on        = [module.vpcs]
+  source                     = "./modules/compute"
+  for_each                   = { for compute in toset(var.compute_engines) : compute.name => compute }
+  machine_type               = each.value.machine_type
+  instance_name              = each.value.name
+  boot_disk                  = each.value.boot_disk
+  network_interface          = each.value.network_interface
+  zone                       = each.value.zone
+  image                      = each.value.image
+  tags                       = each.value.tags
+  depends_on                 = [module.vpcs]
+  sql_db_environment_configs = each.value.sql_db_environment_configs
+  vpcs_with_db_instance      = module.vpcs
+}
+
+
+output "vpcs_with_db_instance" {
+  value     = module.vpcs
+  sensitive = true
 }
