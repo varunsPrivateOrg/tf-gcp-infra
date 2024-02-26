@@ -1,5 +1,5 @@
 output "db_password" {
-  value = google_sql_user.user.password
+  value = random_password.db_password.result
 }
 
 output "db_username" {
