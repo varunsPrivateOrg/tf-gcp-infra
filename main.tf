@@ -9,6 +9,8 @@ module "vpcs" {
   subnets                             = each.value.subnets
   firewall                            = each.value.firewall
   database_instances                  = each.value.database_instances
+  peering_address_range               = each.value.peering_address_range
+
 }
 
 module "compute_engines" {
@@ -21,9 +23,9 @@ module "compute_engines" {
   zone                       = each.value.zone
   image                      = each.value.image
   tags                       = each.value.tags
-  depends_on                 = [module.vpcs]
   sql_db_environment_configs = each.value.sql_db_environment_configs
   vpcs_with_db_instance      = module.vpcs
+  depends_on                 = [module.vpcs]
 }
 
 

@@ -26,18 +26,19 @@ resource "google_sql_database" "database" {
   name            = var.database_config.name
   instance        = google_sql_database_instance.default.name
   deletion_policy = var.database_config.deletion_policy
+  depends_on      = [google_sql_user.user]
 }
 
 resource "random_password" "db_password" {
   length           = 16
   special          = true
-  override_special = "!#$%&*()-_=+[]{}<>:?"
+  override_special = "!#$%&"
 
 }
 
 resource "google_sql_user" "user" {
-  name     = var.users_config.name
-  instance = google_sql_database_instance.default.name
-  password = random_password.db_password.result
-
+  name       = var.users_config.name
+  instance   = google_sql_database_instance.default.name
+  password   = random_password.db_password.result
+  depends_on = [google_sql_database_instance.default]
 }
