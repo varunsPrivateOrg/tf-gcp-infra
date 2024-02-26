@@ -4,16 +4,16 @@ variable "database_instance_config" {
     database_version = string
     settings = object({
       tier                        = string
-      deletion_protection_enabled = bool
-      availability_type           = string
-      disk_type                   = string
-      disk_size                   = number
+      deletion_protection_enabled = optional(bool, false)
+      availability_type           = optional(string, "REGIONAL")
+      disk_type                   = optional(string, "pd-ssd")
+      disk_size                   = optional(number, 100)
       edition                     = string
       ip_configuration = object({
-        ipv4_enabled = bool
+        ipv4_enabled = optional(bool, false)
       })
     })
-    deletion_protection = bool
+    deletion_protection = optional(bool)
   })
 }
 

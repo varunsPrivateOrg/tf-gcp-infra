@@ -72,16 +72,16 @@ variable "vpcs" {
         database_version = string
         settings = object({
           tier                        = string
-          deletion_protection_enabled = bool
-          availability_type           = string
-          disk_type                   = string
-          disk_size                   = number
+          deletion_protection_enabled = optional(bool)
+          availability_type           = optional(string)
+          disk_type                   = optional(string)
+          disk_size                   = optional(number)
           edition                     = string
           ip_configuration = object({
-            ipv4_enabled = bool
+            ipv4_enabled = optional(bool)
           })
         })
-        deletion_protection = bool
+        deletion_protection = optional(bool)
       })
       database_config = object({
         name            = string
@@ -97,7 +97,15 @@ variable "vpcs" {
       users_config = object({
         name = string
       })
-    }))
+      })
+
+    )
+    peering_address_range = object({
+      name          = string
+      address_type  = string
+      purpose       = string
+      prefix_length = optional(number, 24)
+    })
 
   }))
 }

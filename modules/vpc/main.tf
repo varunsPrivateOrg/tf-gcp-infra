@@ -62,16 +62,17 @@ resource "google_compute_firewall" "firewall" {
 
 
 resource "google_compute_global_address" "peering_address_range" {
-  name          = "global-psconnect-ip"
-  address_type  = "INTERNAL"
-  purpose       = "VPC_PEERING"
+  name          = var.peering_address_range.name
+  address_type  = var.peering_address_range.address_type
+  purpose       = var.peering_address_range.purpose
   network       = google_compute_network.vpc_network.id
-  prefix_length = 24
+  prefix_length = var.peering_address_range.prefix_length
 }
 resource "google_service_networking_connection" "default" {
   network                 = google_compute_network.vpc_network.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.peering_address_range.name]
+  deletion_policy         = "ABANDON"
 }
 
 
