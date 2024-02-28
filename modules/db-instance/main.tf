@@ -31,8 +31,7 @@ resource "google_sql_database" "database" {
 
 resource "random_password" "db_password" {
   length           = 16
-  special          = true
-  override_special = ""
+  special          = false
 }
 
 resource "google_sql_user" "user" {
