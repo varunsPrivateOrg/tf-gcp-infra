@@ -109,3 +109,14 @@ variable "vpcs" {
 
   }))
 }
+
+variable "dns_records" {
+  type = list(object({
+    id               = number
+    dns_record_name  = string
+    recordType       = string
+    ttl              = number
+    instance_name    = string
+    dns_managed_zone = string
+  }))
+}

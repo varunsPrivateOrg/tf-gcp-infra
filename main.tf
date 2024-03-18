@@ -33,3 +33,20 @@ output "vpcs_with_db_instance" {
   value     = module.vpcs
   sensitive = true
 }
+
+output "compute_instance_public_ip" {
+  value     = module.compute_engines
+  sensitive = false
+}
+
+
+module "dns_records" {
+  source           = "./modules/dns-record"
+  for_each         = { for dns_record in toset(var.dns_records) : dns_record.id => dns_record }
+  publicIps        = module.compute_engines
+  dns_record_name  = each.value.dns_record_name
+  recordType       = each.value.recordType
+  ttl              = each.value.ttl
+  instance_name    = each.value.instance_name
+  dns_managed_zone = each.value.dns_managed_zone
+}
