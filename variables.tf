@@ -34,6 +34,8 @@ variable "compute_engines" {
       vpc_network_name         = string
       database_instance_prefix = string
     })
+    service_account_id     = string
+    service_account_scopes = list(string)
   }))
 }
 
@@ -118,5 +120,15 @@ variable "dns_records" {
     ttl              = number
     instance_name    = string
     dns_managed_zone = string
+  }))
+}
+
+
+variable "service_accounts" {
+  type = list(object({
+    project_id                   = string
+    service_account_id           = string
+    service_account_display_name = string
+    roles                        = list(string)
   }))
 }

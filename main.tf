@@ -13,6 +13,14 @@ module "vpcs" {
 
 }
 
+module "service_accounts" {
+  source                       = "./modules/service-account"
+  for_each                     = { for service_account in toset(var.service_accounts) : service_account.service_account_id => service_account }
+  project_id                   = each.value.project_id
+  service_account_id           = each.value.service_account_id
+  service_account_display_name = each.value.service_account_display_name
+  roles                        = each.value.roles
+}
 module "compute_engines" {
   source                     = "./modules/compute"
   for_each                   = { for compute in toset(var.compute_engines) : compute.name => compute }
@@ -26,6 +34,9 @@ module "compute_engines" {
   sql_db_environment_configs = each.value.sql_db_environment_configs
   vpcs_with_db_instance      = module.vpcs
   depends_on                 = [module.vpcs]
+  service_account_email      = module.service_accounts[each.value.service_account_id].service_account_email
+  service_account_scopes     = each.value.service_account_scopes
+
 }
 
 
@@ -34,8 +45,13 @@ output "vpcs_with_db_instance" {
   sensitive = true
 }
 
-output "compute_instance_public_ip" {
+output "compute_instance_public_ips" {
   value     = module.compute_engines
+  sensitive = false
+}
+
+output "service_account_emails" {
+  value     = module.service_accounts
   sensitive = false
 }
 
@@ -50,3 +66,4 @@ module "dns_records" {
   instance_name    = each.value.instance_name
   dns_managed_zone = each.value.dns_managed_zone
 }
+
