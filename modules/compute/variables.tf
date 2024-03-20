@@ -55,3 +55,11 @@ variable "sql_db_environment_configs" {
 variable "vpcs_with_db_instance" {
   type = any
 }
+
+
+variable "service_account_email" {
+  type = string
+}
+variable "service_account_scopes" {
+  type = list(string)
+}

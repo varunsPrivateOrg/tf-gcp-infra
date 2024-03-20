@@ -33,6 +33,12 @@ rm -f /opt/webapp/.env
 
 echo ".env file has been updated."
 EOF
+
+  service_account {
+    email  = var.service_account_email
+    scopes = var.service_account_scopes
+  }
+  allow_stopping_for_update = true
 }
 
 data "google_compute_image" "my_image_datasource" {
