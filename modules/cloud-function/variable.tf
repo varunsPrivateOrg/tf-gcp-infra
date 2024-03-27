@@ -52,6 +52,7 @@ variable "env_variable_configs" {
 variable "event_trigger" {
   type = object({
     trigger_region       = string
+    pub_topic            = string
     event_type           = string
     service_account_name = string
     retry_policy         = optional(string, "RETRY_POLICY_RETRY")

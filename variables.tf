@@ -177,6 +177,7 @@ variable "cloud_functions" {
     })
     event_trigger = object({
       trigger_region       = string
+      pub_topic            = string
       event_type           = string
       service_account_name = string
       retry_policy         = optional(string, "RETRY_POLICY_RETRY")

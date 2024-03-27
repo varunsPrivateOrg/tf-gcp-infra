@@ -37,7 +37,7 @@ resource "google_cloudfunctions2_function" "function" {
   event_trigger {
     trigger_region        = var.event_trigger.trigger_region
     event_type            = var.event_trigger.event_type
-    pubsub_topic          = var.topics["email-verification-topic"].topic_id
+    pubsub_topic          = var.topics[var.event_trigger.pub_topic].topic_id
     service_account_email = var.service_accounts[var.event_trigger.service_account_name].service_account_email
     retry_policy          = var.event_trigger.retry_policy
   }
