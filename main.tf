@@ -37,7 +37,6 @@ module "compute_engines" {
   service_account_email      = module.service_accounts[each.value.service_account_id].service_account_email
   service_account_scopes     = each.value.service_account_scopes
   environment_variables      = each.value.environment_variables
-
 }
 
 
@@ -108,7 +107,7 @@ resource "google_cloudfunctions2_function" "function" {
     available_cpu                    = "1"
     ingress_settings                 = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision   = true
-    service_account_email            = google_service_account.cloud_function.email
+    service_account_email            = module.service_accounts["service-account-cloudfunctions"].service_account_email
     vpc_connector                    = google_vpc_access_connector.connector.id
     vpc_connector_egress_settings    = "PRIVATE_RANGES_ONLY"
     environment_variables = {
@@ -126,35 +125,35 @@ resource "google_cloudfunctions2_function" "function" {
     trigger_region        = "us-east1"
     event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
     pubsub_topic          = google_pubsub_topic.email-verification.id
-    service_account_email = google_service_account.pub_sub.email
+    service_account_email = module.service_accounts["service-account-pub-sub"].service_account_email
     retry_policy          = "RETRY_POLICY_RETRY"
   }
   depends_on = [google_vpc_access_connector.connector]
 }
 
-resource "google_service_account" "cloud_function" {
-  account_id   = "gcf-sa"
-  display_name = "cloud-function-service-account"
-}
+# resource "google_service_account" "cloud_function" {
+#   account_id   = "gcf-sa"
+#   display_name = "cloud-function-service-account"
+# }
 
 
-resource "google_service_account" "pub_sub" {
-  account_id   = "pub-sub-sa"
-  display_name = "pub-sub-service-account"
-}
+# resource "google_service_account" "pub_sub" {
+#   account_id   = "pub-sub-sa"
+#   display_name = "pub-sub-service-account"
+# }
 
-resource "google_project_iam_binding" "token-role1" {
-  project = var.project_id
-  role    = "roles/iam.serviceAccountTokenCreator"
-  members = [
-    "serviceAccount:${google_service_account.pub_sub.email}"
-  ]
-}
+# resource "google_project_iam_binding" "token-role1" {
+#   project = var.project_id
+#   role    = "roles/iam.serviceAccountTokenCreator"
+#   members = [
+#     "serviceAccount:${google_service_account.pub_sub.email}"
+#   ]
+# }
 
-resource "google_project_iam_binding" "token-role2" {
-  project = var.project_id
-  role    = "roles/run.invoker"
-  members = [
-    "serviceAccount:${google_service_account.pub_sub.email}"
-  ]
-}
+# resource "google_project_iam_binding" "token-role2" {
+#   project = var.project_id
+#   role    = "roles/run.invoker"
+#   members = [
+#     "serviceAccount:${google_service_account.pub_sub.email}"
+#   ]
+# }
