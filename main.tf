@@ -36,6 +36,7 @@ module "compute_engines" {
   depends_on                 = [module.vpcs]
   service_account_email      = module.service_accounts[each.value.service_account_id].service_account_email
   service_account_scopes     = each.value.service_account_scopes
+  environment_variables      = each.value.environment_variables
 
 }
 
@@ -67,3 +68,93 @@ module "dns_records" {
   dns_managed_zone = each.value.dns_managed_zone
 }
 
+
+resource "google_pubsub_topic" "email-verification" {
+  name                       = "email-verification-topic"
+  message_retention_duration = "604800s"
+}
+
+
+resource "google_vpc_access_connector" "connector" {
+  name          = "vpc-connector"
+  ip_cidr_range = "10.0.3.0/28"
+  network       = "vpc-network"
+  max_instances = 3
+  min_instances = 2
+  depends_on    = [module.vpcs]
+}
+
+
+resource "google_cloudfunctions2_function" "function" {
+  name        = "gcf-function"
+  location    = "us-east1"
+  description = "This is a function to send out emails"
+  build_config {
+    runtime     = "nodejs16"
+    entry_point = "sendEmail"
+    source {
+      storage_source {
+        bucket = "csye6225-demo-gcf-source"
+        object = "serverless.zip"
+      }
+    }
+  }
+  service_config {
+    max_instance_count               = 1
+    min_instance_count               = 1
+    available_memory                 = "4Gi"
+    timeout_seconds                  = 60
+    max_instance_request_concurrency = 2
+    available_cpu                    = "1"
+    ingress_settings                 = "ALLOW_INTERNAL_ONLY"
+    all_traffic_on_latest_revision   = true
+    service_account_email            = google_service_account.cloud_function.email
+    vpc_connector                    = google_vpc_access_connector.connector.id
+    vpc_connector_egress_settings    = "PRIVATE_RANGES_ONLY"
+    environment_variables = {
+      DB_NAME          = module.vpcs["vpc-network"].db_instances_configs["db"].db_name,
+      DB_HOST          = module.vpcs["vpc-network"].db_instances_configs["db"].db_host
+      DB_PASSWORD      = module.vpcs["vpc-network"].db_instances_configs["db"].db_password
+      DB_PORT          = "5432"
+      SENDGRID_API_KEY = "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"
+      TOKEN_SECRET_KEY = "somethingRandom"
+      DB_USER          = module.vpcs["vpc-network"].db_instances_configs["db"].db_username
+    }
+  }
+
+  event_trigger {
+    trigger_region        = "us-east1"
+    event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic          = google_pubsub_topic.email-verification.id
+    service_account_email = google_service_account.pub_sub.email
+    retry_policy          = "RETRY_POLICY_RETRY"
+  }
+  depends_on = [google_vpc_access_connector.connector]
+}
+
+resource "google_service_account" "cloud_function" {
+  account_id   = "gcf-sa"
+  display_name = "cloud-function-service-account"
+}
+
+
+resource "google_service_account" "pub_sub" {
+  account_id   = "pub-sub-sa"
+  display_name = "pub-sub-service-account"
+}
+
+resource "google_project_iam_binding" "token-role1" {
+  project = var.project_id
+  role    = "roles/iam.serviceAccountTokenCreator"
+  members = [
+    "serviceAccount:${google_service_account.pub_sub.email}"
+  ]
+}
+
+resource "google_project_iam_binding" "token-role2" {
+  project = var.project_id
+  role    = "roles/run.invoker"
+  members = [
+    "serviceAccount:${google_service_account.pub_sub.email}"
+  ]
+}

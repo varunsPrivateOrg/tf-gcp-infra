@@ -28,6 +28,8 @@ rm -f /opt/webapp/.env
   echo "DB_PASSWORD=${var.vpcs_with_db_instance[var.sql_db_environment_configs.vpc_network_name].db_instances_configs[var.sql_db_environment_configs.database_instance_prefix].db_password}"
   echo "DB_PORT=5432"
   echo "PORT=3000"
+  echo "PUB_TOPIC=${var.environment_variables.pub_topic}"
+  echo "PUB_PROJECT_ID=${var.environment_variables.pub_project_id}"
   echo "DB_HOST=${var.vpcs_with_db_instance[var.sql_db_environment_configs.vpc_network_name].db_instances_configs[var.sql_db_environment_configs.database_instance_prefix].db_host}"
 } > /opt/webapp/.env
 
