@@ -137,3 +137,69 @@ variable "service_accounts" {
     roles                        = list(string)
   }))
 }
+
+
+variable "cloud_functions" {
+
+  type = list(object({
+    name        = string
+    location    = string
+    description = string
+    build_config = object({
+      runtime     = string
+      entry_point = string
+      source = object({
+        storage_source = object({
+          bucket = string
+          object = string
+        })
+      })
+    })
+    service_config = object({
+      max_instance_count               = optional(number, 1)
+      min_instance_count               = optional(number, 1)
+      available_memory                 = optional(string, "4Gi")
+      timeout_seconds                  = optional(number, 60)
+      max_instance_request_concurrency = optional(number, 2)
+      available_cpu                    = optional(string, "1")
+      ingress_settings                 = optional(string, "ALLOW_INTERNAL_ONLY")
+      all_traffic_on_latest_revision   = optional(bool, true)
+      service_account_name             = string
+      vpc_connector_name               = string
+      vpc_connector_egress_settings    = string
+    })
+    env_variable_configs = object({
+
+      vpc_network_name        = string
+      db_instance_name        = string
+      direct_sendgrid_api_key = string
+      direct_db_port          = string
+    })
+    event_trigger = object({
+      trigger_region       = string
+      event_type           = string
+      service_account_name = string
+      retry_policy         = optional(string, "RETRY_POLICY_RETRY")
+    })
+    })
+  )
+}
+
+
+variable "topics" {
+  type = list(object({
+    name                       = string
+    message_retention_duration = string
+  }))
+}
+
+
+variable "vpc_connectors" {
+  type = list(object({
+    vpc_connector_name = string
+    ip_cidr_range      = string
+    network            = string
+    max_instances      = number
+    min_instances      = number
+  }))
+}
