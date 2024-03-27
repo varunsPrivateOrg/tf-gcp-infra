@@ -63,3 +63,10 @@ variable "service_account_email" {
 variable "service_account_scopes" {
   type = list(string)
 }
+
+variable "environment_variables" {
+  type = object({
+    pub_topic      = string,
+    pub_project_id = string
+  })
+}

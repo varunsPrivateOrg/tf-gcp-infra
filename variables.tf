@@ -36,7 +36,12 @@ variable "compute_engines" {
     })
     service_account_id     = string
     service_account_scopes = list(string)
+    environment_variables = object({
+      pub_topic      = string,
+      pub_project_id = string
+    })
   }))
+
 }
 
 variable "vpcs" {
