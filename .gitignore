@@ -1,6 +1,6 @@
 # Local .terraform directories
 **/.terraform/*
-
+artillery
 # .tfstate files
 *.tfstate
 *.tfstate.*
