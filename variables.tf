@@ -242,7 +242,6 @@ variable "instance_template" {
     metadata_startup_script_values = object({
       db_name                  = string
       db_username              = string
-      db_password              = string
       pub_topic                = string
       pub_project_id           = string
       db_host_vpc_name         = string
@@ -323,7 +322,7 @@ variable "load_balancer" {
     backends = object({
       port        = number
       protocol    = string
-      port__name  = string
+      port_name   = string
       timeout_sec = number
       enable_cdn  = bool
       health_check = object({
@@ -337,7 +336,7 @@ variable "load_balancer" {
       group_balancing_mode = string
     })
     iap_config = object({
-      enable = false
+      enable = bool
     })
   })
 }

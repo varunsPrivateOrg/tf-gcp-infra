@@ -115,44 +115,43 @@ module "cloud_functions" {
 
 
 data "google_compute_image" "my_image" {
-  family  = "csye6225"
-  project = "cloudspring2024-dev-415217"
+  family  = var.image_family.family
+  project = var.image_family.project
 }
 
 resource "google_compute_region_instance_template" "default" {
-  name                 = "weappserver-template"
-  description          = "This template is used to create webapp server instances."
-  tags                 = ["webapp-instance"]
-  instance_description = "description assigned to instances"
-  machine_type         = "e2-medium"
-  can_ip_forward       = false
+  name                 = var.instance_template.name
+  description          = var.instance_template.description
+  tags                 = var.instance_template.tags
+  instance_description = var.instance_template.instance_description
+  machine_type         = var.instance_template.machine_type
+  can_ip_forward       = var.instance_template.can_ip_forward
 
   scheduling {
-    automatic_restart   = true
-    on_host_maintenance = "MIGRATE"
+    automatic_restart   = var.instance_template.scheduling.automatic_restart
+    on_host_maintenance = var.instance_template.scheduling.on_host_maintenance
   }
 
 
   disk {
     source_image = data.google_compute_image.my_image.self_link
-    auto_delete  = true
-    boot         = true
-    disk_size_gb = 40
-    disk_type    = "pd-balanced"
+    auto_delete  = var.instance_template.disk.auto_delete
+    boot         = var.instance_template.disk.boot
+    disk_size_gb = var.instance_template.disk.disk_size_gb
+    disk_type    = var.instance_template.disk.disk_type
   }
   network_interface {
-    subnetwork_project = "cloudspring2024-demo-415217"
-    network            = "vpc-network"
-    subnetwork         = "projects/cloudspring2024-demo-415217/regions/us-east1/subnetworks/webapp"
-    # To Do remove public IP
+    subnetwork_project = var.instance_template.network_interface.subnetwork_project
+    network            = var.instance_template.network_interface.network
+    subnetwork         = var.instance_template.network_interface.subnetwork
     access_config {
 
     }
 
   }
   service_account {
-    email  = module.service_accounts["service-account-logging"].service_account_email
-    scopes = ["cloud-platform"]
+    email  = module.service_accounts["${var.instance_template.service_account.service_account_id}"].service_account_email
+    scopes = var.instance_template.service_account.scopes
   }
 
   metadata_startup_script = <<EOF
@@ -161,11 +160,11 @@ rm -f /opt/webapp/.env
 {
   echo "DB_USERNAME=webapp"
   echo "DB_NAME=webapp"
-  echo "DB_PASSWORD=${module.vpcs["vpc-network"].db_instances_configs["db"].db_password}"
+  echo "DB_PASSWORD=${module.vpcs["${var.instance_template.metadata_startup_script_values.db_host_vpc_name}"].db_instances_configs["${var.instance_template.metadata_startup_script_values.db_host_db_instance_name}"].db_password}"
   echo "PORT=3000"
-  echo "PUB_TOPIC=verify_email"
-  echo "PUB_PROJECT_ID=cloudspring2024-demo-415217"
-  echo "DB_HOST=${module.vpcs["vpc-network"].db_instances_configs["db"].db_host}"
+  echo "PUB_TOPIC=${var.instance_template.metadata_startup_script_values.pub_topic}"
+  echo "PUB_PROJECT_ID=${var.instance_template.metadata_startup_script_values.pub_project_id}"
+  echo "DB_HOST=${module.vpcs["${var.instance_template.metadata_startup_script_values.db_host_vpc_name}"].db_instances_configs["${var.instance_template.metadata_startup_script_values.db_host_db_instance_name}"].db_host}"
 } > /opt/webapp/.env
 
 echo ".env file has been updated."
@@ -175,63 +174,63 @@ EOF
 
 
 resource "google_compute_health_check" "autohealing" {
-  name                = "webappserver-health-check"
-  check_interval_sec  = 10
-  timeout_sec         = 5
-  healthy_threshold   = 2
-  unhealthy_threshold = 2 # 50 seconds
+  name                = var.health_check.name
+  check_interval_sec  = var.health_check.check_interval_sec
+  timeout_sec         = var.health_check.timeout_sec
+  healthy_threshold   = var.health_check.healthy_threshold
+  unhealthy_threshold = var.health_check.unhealthy_threshold
 
   http_health_check {
-    request_path = "/healthz"
-    port         = "3000"
+    request_path = var.health_check.http_health_check.request_path
+    port         = var.health_check.http_health_check.port
   }
 }
 
 
 resource "google_compute_region_instance_group_manager" "appserver" {
-  name = "webappserver-igm"
+  name = var.instance_group_manager.name
 
-  base_instance_name = "webappserver-igm-managed"
-  region             = "us-east1"
+  base_instance_name = var.instance_group_manager.base_instance_name
+  region             = var.instance_group_manager.region
 
   version {
     instance_template = google_compute_region_instance_template.default.self_link
   }
   named_port {
-    name = "webapp-port"
-    port = 3000
+    name = var.instance_group_manager.named_port.name
+    port = var.instance_group_manager.named_port.port
   }
 
   auto_healing_policies {
     health_check      = google_compute_health_check.autohealing.id
-    initial_delay_sec = 300
+    initial_delay_sec = var.instance_group_manager.auto_healing_policies.initial_delay_sec
   }
 
   instance_lifecycle_policy {
-    force_update_on_repair = "YES"
+    force_update_on_repair = var.instance_group_manager.instance_lifecycle_policy.force_update_on_repair
   }
   depends_on = [module.vpcs]
 
 }
 
 resource "google_compute_region_autoscaler" "webappserver_autoscaler" {
-  name   = "my-region-webapp-autoscaler"
-  region = "us-east1"
+  name   = var.auto_scaler.name
+  region = var.auto_scaler.region
   target = google_compute_region_instance_group_manager.appserver.id
 
   autoscaling_policy {
-    max_replicas    = 4
-    min_replicas    = 2
-    cooldown_period = 150
+    max_replicas    = var.auto_scaler.autoscaling_policy.max_replicas
+    min_replicas    = var.auto_scaler.autoscaling_policy.min_replicas
+    cooldown_period = var.auto_scaler.autoscaling_policy.cooldown_period
 
     cpu_utilization {
-      target = 0.1
+      target = var.auto_scaler.cpu_utilization.target
     }
     scale_in_control {
       max_scaled_in_replicas {
-        fixed = 1
+        fixed = var.auto_scaler.scale_in_control.max_scaled_in_replicas.fixed
       }
-      time_window_sec = 60
+      time_window_sec = var.auto_scaler.scale_in_control.time_window_sec
     }
 
   }
@@ -243,45 +242,45 @@ module "gce-lb-http" {
   source  = "GoogleCloudPlatform/lb-http/google"
   version = "~> 9.0"
 
-  project = "cloudspring2024-demo-415217"
-  name    = "group-http-lb"
+  project                         = var.load_balancer.project
+  name                            = var.load_balancer.name
+  ssl                             = var.load_balancer.ssl
+  managed_ssl_certificate_domains = var.load_balancer.managed_ssl_certificate_domains
+  firewall_projects               = var.load_balancer.firewall_projects
+  target_tags                     = var.load_balancer.target_tags
+  http_forward                    = var.load_balancer.http_forward
+  https_redirect                  = var.load_balancer.https_redirect
 
-  ssl                             = true
-  managed_ssl_certificate_domains = ["varunjayakumar.me"]
   #  this firewall is created for each backend to allow health check on the follieng netowkrs with specified taret tags
-  firewall_networks = [module.vpcs["vpc-network"].vpc.self_link]
-  firewall_projects = ["cloudspring2024-demo-415217"]
-  target_tags       = ["webapp-instance"]
-  http_forward      = false
-  https_redirect    = false
+  firewall_networks = [module.vpcs["${var.load_balancer.firewall_network_sub}"].vpc.self_link]
+
 
   backends = {
     default = {
-      port        = 3000
-      protocol    = "HTTP"
-      port_name   = "webapp-port"
-      timeout_sec = 10
-      enable_cdn  = false
+      port        = var.load_balancer.backends.port
+      protocol    = var.load_balancer.backends.protocol
+      port_name   = var.load_balancer.backends.port_name
+      timeout_sec = var.load_balancer.backends.timeout_sec
+      enable_cdn  = var.load_balancer.backends.enable_cdn
 
       health_check = {
-        request_path = "/healthz"
+        request_path = var.load_balancer.backends.health_check.request_path
         port         = 3000
       }
 
       log_config = {
-        enable      = true
-        sample_rate = 1.0
+        enable      = var.load_balancer.backends.log_config.enable
+        sample_rate = var.load_balancer.backends.log_config.sample_rate
       }
 
       groups = [
         {
           group          = google_compute_region_instance_group_manager.appserver.instance_group
-          balancing_mode = "UTILIZATION"
-
+          balancing_mode = var.load_balancer.backends.group_balancing_mode
         },
       ]
       iap_config = {
-        enable = false
+        enable = var.load_balancer.iap_config.enable
       }
     }
   }
