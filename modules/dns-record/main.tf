@@ -5,7 +5,7 @@ resource "google_dns_record_set" "frontend" {
 
   managed_zone = data.google_dns_managed_zone.managed_zone.name
 
-  rrdatas = [var.publicIps[var.instance_name].compute_public_ip]
+  rrdatas = var.publicIps
 }
 
 data "google_dns_managed_zone" "managed_zone" {

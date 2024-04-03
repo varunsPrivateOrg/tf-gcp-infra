@@ -204,3 +204,144 @@ variable "vpc_connectors" {
     min_instances      = number
   }))
 }
+
+variable "image_family" {
+  type = object({
+    family  = string
+    project = string
+  })
+}
+
+variable "instance_template" {
+  type = object({
+    name                 = string
+    description          = string
+    tags                 = list(string)
+    instance_description = string
+    machine_type         = string
+    can_ip_forward       = bool
+    scheduling = object({
+      automatic_restart   = bool
+      on_host_maintenance = string
+    })
+    disk = object({
+      auto_delete  = bool
+      boot         = bool
+      disk_size_gb = number
+      disk_type    = string
+    })
+    network_interface = object({
+      subnetwork_project = string
+      network            = string
+      subnetwork         = string
+    })
+    service_account = object({
+      service_account_id = string
+      scopes             = list(string)
+    })
+    metadata_startup_script_values = object({
+      db_name                  = string
+      db_username              = string
+      db_password              = string
+      pub_topic                = string
+      pub_project_id           = string
+      db_host_vpc_name         = string
+      db_host_db_instance_name = string
+    })
+  })
+}
+
+
+variable "health_check" {
+  type = object({
+    name                = string
+    check_interval_sec  = number
+    timeout_sec         = number
+    healthy_threshold   = number
+    unhealthy_threshold = number
+    http_health_check = object({
+      request_path = string
+      port         = string
+    })
+  })
+}
+
+
+variable "instance_group_manager" {
+  type = object({
+    name               = string
+    base_instance_name = string
+    region             = string
+    named_port = object({
+      name = string
+      port = number
+    })
+    auto_healing_policies = object({
+      initial_delay_sec = number
+    })
+    instance_lifecycle_policy = object({
+      force_update_on_repair = string
+    })
+  })
+}
+
+variable "auto_scaler" {
+  type = object({
+    name   = string
+    region = string
+    autoscaling_policy = object({
+      max_replicas    = number
+      min_replicas    = number
+      cooldown_period = number
+    })
+    cpu_utilization = object({
+      target = number
+    })
+    scale_in_control = object({
+      max_scaled_in_replicas = object({
+        fixed = number
+      })
+      time_window_sec = number
+    })
+  })
+}
+
+
+variable "load_balancer" {
+  type = object({
+    project = string
+    name    = string
+
+    ssl                             = bool
+    managed_ssl_certificate_domains = list(string)
+    firewall_network_sub            = string
+    firewall_projects               = list(string)
+    target_tags                     = list(string)
+    http_forward                    = bool
+    https_redirect                  = bool
+
+    backends = object({
+      port        = number
+      protocol    = string
+      port__name  = string
+      timeout_sec = number
+      enable_cdn  = bool
+      health_check = object({
+        request_path = string
+        port         = number
+      })
+      log_config = object({
+        enable      = bool
+        sample_rate = number
+      })
+      group_balancing_mode = string
+    })
+    iap_config = object({
+      enable = false
+    })
+  })
+}
+
+
+
+
