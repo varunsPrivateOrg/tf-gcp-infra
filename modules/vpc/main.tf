@@ -84,4 +84,5 @@ module "database_instance" {
   users_config             = each.value.users_config
   vpc_reference            = google_compute_network.vpc_network.id
   depends_on               = [google_service_networking_connection.default]
+  encryption_key_name      = var.encryption_key_name
 }

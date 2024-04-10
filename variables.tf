@@ -343,4 +343,43 @@ variable "load_balancer" {
 
 
 
+# variable "source_files" {
+#   type = list(string)
+# }
+
+
+variable "kms_iam_binding" {
+  type = object({
+    role    = string
+    members = list(string)
+  })
+}
+
+variable "keyring" {
+  type = object({
+    key_ring_name   = string
+    location        = string
+    key_name        = string
+    rotation_period = string
+  })
+}
+
+variable "storage_bucket" {
+  type = object({
+    name          = string
+    location      = string
+    storage_class = string
+  })
+}
+
+variable "storage_bucket_object" {
+  type = object({
+    name         = string
+    source       = string
+    content_type = string
+  })
+}
+
+
+
 
