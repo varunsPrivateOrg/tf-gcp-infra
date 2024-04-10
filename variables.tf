@@ -342,12 +342,6 @@ variable "load_balancer" {
 }
 
 
-
-# variable "source_files" {
-#   type = list(string)
-# }
-
-
 variable "kms_iam_binding" {
   type = object({
     role    = string
