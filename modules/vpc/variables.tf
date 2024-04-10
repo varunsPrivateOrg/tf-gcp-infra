@@ -95,3 +95,7 @@ variable "peering_address_range" {
     prefix_length = optional(number, 24)
   })
 }
+
+variable "encryption_key_name" {
+  type = string
+}

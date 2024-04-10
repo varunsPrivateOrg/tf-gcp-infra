@@ -4,9 +4,9 @@ resource "random_id" "db_name_suffix" {
 }
 
 resource "google_sql_database_instance" "default" {
-  name             = "${var.database_instance_config.name_prefix}-${random_id.db_name_suffix.hex}"
-  database_version = var.database_instance_config.database_version
-
+  name                = "${var.database_instance_config.name_prefix}-${random_id.db_name_suffix.hex}"
+  database_version    = var.database_instance_config.database_version
+  encryption_key_name = var.encryption_key_name
   settings {
     tier                        = var.database_instance_config.settings.tier
     deletion_protection_enabled = var.database_instance_config.settings.deletion_protection_enabled
@@ -30,8 +30,8 @@ resource "google_sql_database" "database" {
 }
 
 resource "random_password" "db_password" {
-  length           = 16
-  special          = false
+  length  = 16
+  special = false
 }
 
 resource "google_sql_user" "user" {

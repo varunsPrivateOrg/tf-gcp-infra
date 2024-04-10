@@ -10,6 +10,7 @@ module "vpcs" {
   firewall                            = each.value.firewall
   database_instances                  = each.value.database_instances
   peering_address_range               = each.value.peering_address_range
+  encryption_key_name                 = google_kms_crypto_key.example-key.id
 
 }
 
@@ -110,7 +111,7 @@ module "cloud_functions" {
   service_accounts     = module.service_accounts
   topics               = module.topics
   vpc_connectors       = module.vpc_connectors
-  depends_on           = [module.vpc_connectors]
+  depends_on           = [module.vpc_connectors, google_storage_bucket.static, google_storage_bucket_object.default]
 }
 
 
@@ -132,13 +133,15 @@ resource "google_compute_region_instance_template" "default" {
     on_host_maintenance = var.instance_template.scheduling.on_host_maintenance
   }
 
-
   disk {
     source_image = data.google_compute_image.my_image.self_link
     auto_delete  = var.instance_template.disk.auto_delete
     boot         = var.instance_template.disk.boot
     disk_size_gb = var.instance_template.disk.disk_size_gb
     disk_type    = var.instance_template.disk.disk_type
+    disk_encryption_key {
+      kms_key_self_link = google_kms_crypto_key.example-key.id
+    }
   }
   network_interface {
     subnetwork_project = var.instance_template.network_interface.subnetwork_project
@@ -190,9 +193,9 @@ resource "google_compute_health_check" "autohealing" {
 resource "google_compute_region_instance_group_manager" "appserver" {
   name = var.instance_group_manager.name
 
-  base_instance_name = var.instance_group_manager.base_instance_name
-  region             = var.instance_group_manager.region
-
+  base_instance_name        = var.instance_group_manager.base_instance_name
+  region                    = var.instance_group_manager.region
+  distribution_policy_zones = ["us-east1-b", "us-east1-c"]
   version {
     instance_template = google_compute_region_instance_template.default.self_link
   }
@@ -291,4 +294,82 @@ output "gce-lb-http-output" {
   sensitive = true
 }
 
+resource "random_id" "key_ring_suffix" {
+  byte_length = 4
+}
+resource "google_kms_key_ring" "keyring" {
+  name     = "${var.keyring.key_ring_name}-${random_id.key_ring_suffix.hex}"
+  location = var.keyring.location
+}
 
+resource "google_kms_crypto_key" "example-key" {
+  name            = var.keyring.key_name
+  key_ring        = google_kms_key_ring.keyring.id
+  rotation_period = var.keyring.rotation_period
+}
+
+
+resource "google_kms_crypto_key_iam_binding" "crypto_key" {
+  crypto_key_id = google_kms_crypto_key.example-key.id
+  role          = var.kms_iam_binding.role
+  members       = var.kms_iam_binding.members
+}
+
+# secrets creation
+resource "google_secret_manager_secret" "db_host" {
+  secret_id = "db_host"
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret" "key_ring_name" {
+  secret_id = "key_ring_name"
+  replication {
+    auto {}
+  }
+}
+
+
+resource "google_secret_manager_secret" "db_password" {
+  secret_id = "db_password"
+  replication {
+    auto {}
+  }
+}
+
+
+resource "google_secret_manager_secret_version" "key_ring_name" {
+  secret      = google_secret_manager_secret.key_ring_name.id
+  secret_data = "${var.keyring.key_ring_name}-${random_id.key_ring_suffix.hex}"
+}
+
+
+resource "google_secret_manager_secret_version" "db_host" {
+  secret      = google_secret_manager_secret.db_host.id
+  secret_data = module.vpcs["vpc-network"].db_instances_configs["db"].db_host
+}
+
+
+resource "google_secret_manager_secret_version" "db_password" {
+  secret      = google_secret_manager_secret.db_password.id
+  secret_data = module.vpcs["vpc-network"].db_instances_configs["db"].db_password
+}
+
+
+# Bucket and object creation
+resource "google_storage_bucket" "static" {
+  depends_on    = [google_kms_crypto_key_iam_binding.crypto_key]
+  name          = var.storage_bucket.name
+  location      = var.storage_bucket.location
+  storage_class = var.storage_bucket.storage_class
+  encryption {
+    default_kms_key_name = google_kms_crypto_key.example-key.id
+  }
+}
+resource "google_storage_bucket_object" "default" {
+  name         = var.storage_bucket_object.name
+  source       = var.storage_bucket_object.source
+  content_type = var.storage_bucket_object.content_type
+  bucket       = google_storage_bucket.static.id
+}

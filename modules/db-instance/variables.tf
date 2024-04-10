@@ -33,3 +33,7 @@ variable "users_config" {
 variable "vpc_reference" {
   type = string
 }
+
+variable "encryption_key_name" {
+  type = string
+}
